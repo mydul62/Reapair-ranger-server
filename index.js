@@ -40,7 +40,6 @@ async function run() {
      const id = req.params.id;
      const quary = {_id: new ObjectId(id)}
       const result =await servicesCollection.findOne(quary);
-    console.log(id);
       res.send(result);
     });
     app.delete("/services/service/delete/:id", async (req, res) => {
@@ -59,14 +58,41 @@ async function run() {
       const services = req.body;
       const result = await servicesCollection.insertOne(services);
       res.send(result);
-      console.log(services);
     });
     // Send a ping to confirm a successful connection
     app.post("/services/service/booked-service", async (req, res) => {
       const services = req.body;
       const result = await bookedServiceCollection.insertOne(services);
       res.send(result);
-      console.log(services);
+    });
+    app.get("/services/service/booked-service/:email", async (req, res) => {
+      const email = req.params.email;
+      const quary = {userEmail:email}
+       const result =await bookedServiceCollection.find(quary).toArray();
+       res.send(result);
+     });
+    app.get("/services/service/booked-service/too-service/:email", async (req, res) => {
+      const email = req.params.email;
+      const quary = {providerEmail:email}
+       const result =await bookedServiceCollection.find(quary).toArray();
+       res.send(result);
+     });
+     
+     app.patch('/services/service/booked-service/too-service/update/:id',async(req,res)=>{
+       const id = req.params.id;
+       const status = req.body;
+      const quary = {_id : new ObjectId(id)}
+       const updateDoc = {
+       $set : status,
+       }
+       const result = await bookedServiceCollection.updateOne(quary,updateDoc)
+       
+       res.send(result)
+     })
+    app.get("/services/service/booked-service/", async (req, res) => {
+      const cursor = bookedServiceCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
     });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
