@@ -27,6 +27,7 @@ async function run() {
     const database = client.db("RepairRanger");
     const servicesCollection = database.collection("services");
     const bookedServiceCollection = database.collection("bookedService");
+    const CommentCollection = database.collection("comment");
     app.get('/', (req, res) => {
       res.send('RepairRanger')
     })
@@ -57,6 +58,12 @@ async function run() {
     app.post("/services", async (req, res) => {
       const services = req.body;
       const result = await servicesCollection.insertOne(services);
+      res.send(result);
+    });
+    app.put("/services/update/:id", async (req, res) => {
+    const id = req.params.id;
+      const services = req.body;
+      const result = await servicesCollection.updateOne(services);
       res.send(result);
     });
     // Send a ping to confirm a successful connection
@@ -94,6 +101,49 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+    // comment route
+    app.post('/comments', async (req, res) => {
+      const { text,commentID } = req.body;
+      try {
+        const result = await CommentCollection.insertOne({ text, commentID, replies: [] });
+        res.status(201).json(result.ops[0]);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+  
+    // Route to post a reply to a comment
+    app.post('/comments/:commentId/replies', async (req, res) => {
+      const { commentId } = req.params;
+      const { text } = req.body;
+      console.log(text,commentId)
+      try {
+        const result = await CommentCollection.updateOne({ _id: new ObjectId(commentId)}, { $push: { replies: { text } } });
+        res.status(201).json(result);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+  
+    // Route to get all comments with their replies
+    app.get('/comments/:id', async (req, res) => {
+    console.log(req.params.id)
+      try {
+        const comments = await CommentCollection.find({commentID: req.params.id}).toArray();
+        res.json(comments);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+  
+
+  
+    app.delete("/comments/delete/deleteitem/del/:id", async (req, res) => {
+      const id = req.params.id;
+      const quary = {_id: new ObjectId(id)}
+       const result =await CommentCollection.deleteOne(quary);
+       res.send(result); 
+     });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
