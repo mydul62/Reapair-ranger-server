@@ -65,7 +65,7 @@ async function run() {
     app.get("/services/:id", async (req, res) => {
       const id = req.params.id;
       const quary = { _id: new ObjectId(id) };
-      const result = await servicesCollection.findOne(quary);
+      const result = await  servicesCollection.findOne(quary);
       res.send(result);
     });
     app.delete("/services/service/delete/:id", async (req, res) => {
