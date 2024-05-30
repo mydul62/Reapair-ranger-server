@@ -20,6 +20,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+    await client.connect();
     const database = client.db("RepairRanger");
     const servicesCollection = database.collection("services");
     const bookedServiceCollection = database.collection("bookedService");
@@ -57,7 +58,7 @@ async function run() {
 
     app.delete("/services/service/delete/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { service_id: new ObjectId(id) };
+      const query = { _id: new ObjectId(id) };
       const result = await servicesCollection.deleteOne(query);
       res.send(result);
     });
@@ -81,10 +82,10 @@ async function run() {
       res.send(result);
     });
 
-    app.delete("/favorite/:serviceId", async (req, res) => {
+    app.delete("/favorite/service/:serviceId", async (req, res) => {
       const serviceId = req.params.serviceId;
-      const query = { _id: new ObjectId(serviceId) };
-        const result = await favoriteCollection.deleteOne(query);
+      console.log(serviceId);
+        const result = await favoriteCollection.deleteOne({_id: new ObjectId(serviceId) });
        res.send(result)
     });
     
@@ -93,6 +94,14 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+    app.get("/favorites/favorite/email/:email", async (req, res) => {
+      const email = req.params.email;
+      console.log(email);
+      const query = { fav_user: email };
+      const result = await favoriteCollection.find(query).toArray();
+      res.send(result);
+    });
+
 
     app.put("/services/update/:id", async (req, res) => {
       const id = req.params.id;
